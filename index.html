@@ -1,247 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Campus Splitter</title>
+    <title>Java Powered Campus Splitter</title>
     <style>
-        :root { color-scheme: light; --ink: #25312c; --muted: #6a7770; --line: #dce3dc; --paper: #fff; --ground: #f2f5ef; --green: #24634e; --red: #a44331; }
-        * { box-sizing: border-box; }
-        body { margin: 0; color: var(--ink); background: radial-gradient(circle at 10% 0%, #e4eee4, transparent 34rem), var(--ground); font: 16px/1.5 "Trebuchet MS", sans-serif; }
-        main { max-width: 980px; margin: 0 auto; padding: 36px 20px 56px; }
-        header { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-        h1, h2 { font-family: Georgia, serif; font-weight: 500; }
-        h1 { margin: 0; font-size: 34px; }
-        h2 { margin: 0 0 16px; font-size: 21px; }
-        .subhead, .hint, .empty { color: var(--muted); }
-        .subhead { margin: 5px 0 0; }
-        #status { min-height: 24px; color: var(--green); text-align: right; }
-        #status.error { color: var(--red); }
-        .layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-        section { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); }
-        .wide { grid-column: 1 / -1; }
-        label { display: block; margin: 12px 0 5px; color: #48564f; font-size: 14px; }
-        input, select, button { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #cbd5cd; border-radius: 4px; font: inherit; }
-        input, select { color: var(--ink); background: white; }
-        button { margin-top: 12px; border-color: var(--green); color: white; background: var(--green); font-weight: 700; cursor: pointer; }
-        button:hover { background: #194d3c; }
-        .inline { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        ul { margin: 8px 0 0; padding-left: 20px; }
-        li { margin: 5px 0; overflow-wrap: anywhere; }
-        .member-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #edf0eb; }
-        .balance { white-space: nowrap; color: var(--muted); }
-        .balance.positive { color: var(--green); }
-        .balance.negative { color: var(--red); }
-        .total { margin: -5px 0 12px; font-family: Georgia, serif; font-size: 28px; }
-        .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-        @media (max-width: 650px) { main { padding: 24px 14px 40px; } header { display: block; } #status { margin-top: 8px; text-align: left; } .layout, .columns { grid-template-columns: 1fr; } .wide { grid-column: auto; } section { padding: 16px; } }
+        body { font-family: sans-serif; max-width: 700px; margin: 20px auto; padding: 20px; background: #f4f6f4; color: #222; }
+        .card { background: white; padding: 16px; margin-bottom: 16px; border-radius: 6px; border: 1px solid #dcd; }
+        input, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; }
+        button { background: #24634e; color: white; font-weight: bold; cursor: pointer; }
+        button:hover { background: #1a4a3a; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     </style>
 </head>
 <body>
-<main>
-    <header>
-        <div>
-            <h1>Campus Splitter</h1>
-            <p class="subhead">Shared expenses, kept simple.</p>
+    <h2>🤝 Campus Bill Splitter (Java Core Engine)</h2>
+    <div id="status" style="font-weight: bold; color: #24634e; margin-bottom: 10px;"></div>
+
+    <div class="grid">
+        <div class="card">
+            <h4>1. Add Friends (Comma separated)</h4>
+            <form onsubmit="sendAction(event, 'addMembers', this)">
+                <input name="names" placeholder="Amit, Rahul, Sneha" required>
+                <button type="submit">Add to Group</button>
+            </form>
         </div>
-        <div id="status" role="status" aria-live="polite"></div>
-    </header>
 
-    <div class="layout">
-        <section>
-            <h2>Group</h2>
-            <form id="members-form">
-                <label for="names">Add friends, separated by commas</label>
-                <input id="names" name="names" placeholder="Amit, Rahul, Sneha" required>
-                <button type="submit">Add friends</button>
+        <div class="card">
+            <h4>2. Split a New Bill</h4>
+            <form onsubmit="sendAction(event, 'splitBill', this)">
+                <input name="desc" placeholder="Pizza Party" required>
+                <input name="amount" type="number" step="0.01" placeholder="Amount (INR)" required>
+                <input name="payer" placeholder="Who paid upfront?" required>
+                <input name="category" placeholder="Food" required>
+                <input name="sharedWith" placeholder="Who split? (Blank = all)">
+                <button type="submit">Log Expense</button>
             </form>
-            <div id="members-list" class="hint">No friends added yet.</div>
-        </section>
+        </div>
 
-        <section>
-            <h2>Split a bill</h2>
-            <form id="expense-form">
-                <label for="description">What was it for?</label>
-                <input id="description" name="description" placeholder="Pizza night" required>
-                <div class="inline">
-                    <div><label for="amount">Amount (INR)</label><input id="amount" name="amount" type="number" min="0.01" step="0.01" required></div>
-                    <div><label for="category">Category</label><input id="category" name="category" placeholder="Food" value="General" required></div>
-                </div>
-                <label for="payer">Paid by</label>
-                <select id="payer" name="payer" required><option value="">Add friends first</option></select>
-                <label for="participants">Sharing with (blank means the whole group)</label>
-                <input id="participants" name="participants" placeholder="Amit, Rahul">
-                <button type="submit">Log expense</button>
+        <div class="card">
+            <h4>3. Record Direct Cash Handover</h4>
+            <form onsubmit="sendAction(event, 'handover', this)">
+                <input name="from" placeholder="Who gave cash?" required>
+                <input name="to" placeholder="Who received cash?" required>
+                <input name="amount" type="number" step="0.01" placeholder="Amount (INR)" required>
+                <button type="submit">Record Payment</button>
             </form>
-        </section>
+        </div>
 
-        <section>
-            <h2>Record a handover</h2>
-            <form id="payment-form">
-                <label for="from">Paid by</label>
-                <select id="from" name="from" required><option value="">Add friends first</option></select>
-                <label for="to">Paid to</label>
-                <select id="to" name="to" required><option value="">Add friends first</option></select>
-                <label for="payment-amount">Amount (INR)</label>
-                <input id="payment-amount" name="amount" type="number" min="0.01" step="0.01" required>
-                <button type="submit">Record payment</button>
-            </form>
-        </section>
-
-        <section>
-            <h2>Balances</h2>
-            <button id="settle-button" type="button">Who pays whom?</button>
-            <ul id="settlements" class="hint"><li>Log an expense to see suggested payments.</li></ul>
-        </section>
-
-        <section class="wide">
-            <h2>Group activity</h2>
-            <p class="hint">Total expenses</p>
-            <p class="total"><span id="total">0.00</span> INR</p>
-            <div class="columns">
-                <div><strong>Spending by friend</strong><ul id="spenders"><li class="empty">No expenses yet.</li></ul></div>
-                <div><strong>Spending by category</strong><ul id="categories"><li class="empty">No expenses yet.</li></ul></div>
-            </div>
-            <div class="columns" style="margin-top: 20px">
-                <div><strong>Past bills</strong><ul id="expenses"><li class="empty">No bills yet.</li></ul></div>
-                <div><strong>Cash handovers</strong><ul id="payments"><li class="empty">No handovers yet.</li></ul></div>
-            </div>
-        </section>
+        <!-- Dynamic output stream rendered entirely by Java computations -->
+        <div class="card" style="background: #fafbfa;">
+            <h4>📊 Live Java Analytics & Standings</h4>
+            <button onclick="refreshUI()">Compute & Refresh Board</button>
+            <div id="output-display" style="margin-top: 15px;"></div>
+        </div>
     </div>
-</main>
-<script>
-    const status = document.getElementById('status');
 
-    async function request(path, values) {
-        const options = values === undefined ? {} : {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams(values)
-        };
-        const response = await fetch(path, options);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Request failed.');
-        return data;
-    }
-
-    function addListItem(list, text, emptyMessage) {
-        const item = document.createElement('li');
-        item.textContent = text;
-        list.append(item);
-        if (emptyMessage) list.querySelector('.empty')?.remove();
-    }
-
-    function render(state) {
-        const membersList = document.getElementById('members-list');
-        membersList.replaceChildren();
-        if (!state.members.length) {
-            membersList.textContent = 'No friends added yet.';
-            membersList.className = 'hint';
-        } else {
-            membersList.className = '';
-            state.members.sort((a, b) => a.name.localeCompare(b.name)).forEach(member => {
-                const row = document.createElement('div');
-                const name = document.createElement('span');
-                const balance = document.createElement('span');
-                name.textContent = member.name;
-                balance.className = `balance ${member.balance > 0.01 ? 'positive' : member.balance < -0.01 ? 'negative' : ''}`;
-                balance.textContent = `${member.balance > 0.01 ? 'gets back ' : member.balance < -0.01 ? 'owes ' : ''}${Math.abs(member.balance).toFixed(2)} INR`;
-                row.className = 'member-row';
-                row.append(name, balance);
-                membersList.append(row);
-            });
+    <script>
+        async function sendAction(event, actionName, formElement) {
+            if(event) event.preventDefault();
+            let formData = new URLSearchParams(new FormData(formElement));
+            formData.append("action", actionName);
+            
+            try {
+                let res = await fetch('/api/action', { method: 'POST', body: formData });
+                let text = await res.text();
+                document.getElementById('status').innerText = text;
+                refreshUI();
+                if(formElement) formElement.reset();
+            } catch(e) {
+                document.getElementById('status').innerText = "❌ Connection error.";
+            }
         }
 
-        ['payer', 'from', 'to'].forEach(id => {
-            const select = document.getElementById(id);
-            const previous = select.value;
-            select.replaceChildren();
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = state.members.length ? 'Choose a friend' : 'Add friends first';
-            select.append(placeholder);
-            state.members.forEach(member => {
-                const option = document.createElement('option');
-                option.value = member.name;
-                option.textContent = member.name;
-                select.append(option);
-            });
-            if (state.members.some(member => member.name === previous)) select.value = previous;
-        });
-
-        document.getElementById('total').textContent = state.total.toFixed(2);
-        const spenders = {};
-        const categories = {};
-        state.members.forEach(member => { spenders[member.name] = 0; });
-        state.expenses.forEach(expense => {
-            spenders[expense.payer] = (spenders[expense.payer] || 0) + expense.amount;
-            categories[expense.category] = (categories[expense.category] || 0) + expense.amount;
-        });
-        const spenderList = document.getElementById('spenders');
-        spenderList.replaceChildren();
-        Object.entries(spenders).sort((a, b) => b[1] - a[1]).forEach(([name, amount]) => addListItem(spenderList, `${name}: ${amount.toFixed(2)} INR`));
-        if (!Object.keys(spenders).length) addListItem(spenderList, 'No expenses yet.', true), spenderList.lastChild.className = 'empty';
-        const categoryList = document.getElementById('categories');
-        categoryList.replaceChildren();
-        Object.entries(categories).sort((a, b) => b[1] - a[1]).forEach(([name, amount]) => addListItem(categoryList, `${name}: ${amount.toFixed(2)} INR`));
-        if (!Object.keys(categories).length) addListItem(categoryList, 'No expenses yet.', true), categoryList.lastChild.className = 'empty';
-
-        const expenseList = document.getElementById('expenses');
-        expenseList.replaceChildren();
-        state.expenses.slice().reverse().forEach(expense => addListItem(expenseList, `${expense.payer} paid ${expense.amount.toFixed(2)} INR for ${expense.description} (${expense.category})`));
-        if (!state.expenses.length) addListItem(expenseList, 'No bills yet.', true), expenseList.lastChild.className = 'empty';
-        const paymentList = document.getElementById('payments');
-        paymentList.replaceChildren();
-        state.payments.slice().reverse().forEach(payment => addListItem(paymentList, payment));
-        if (!state.payments.length) addListItem(paymentList, 'No handovers yet.', true), paymentList.lastChild.className = 'empty';
-    }
-
-    async function refresh(message) {
-        render(await request('/api/state'));
-        status.textContent = message || '';
-        status.className = '';
-    }
-
-    async function submitForm(event, path, successMessage) {
-        event.preventDefault();
-        const form = event.currentTarget;
-        const values = Object.fromEntries(new FormData(form));
-        try {
-            render(await request(path, values));
-            status.textContent = successMessage;
-            status.className = '';
-            form.reset();
-            if (path === '/api/expenses') document.getElementById('category').value = 'General';
-            const settlements = document.getElementById('settlements');
-            settlements.replaceChildren();
-            addListItem(settlements, 'Balances changed. Recalculate for updated suggestions.');
-        } catch (error) {
-            status.textContent = error.message;
-            status.className = 'error';
+        async function refreshUI() {
+            let res = await fetch('/api/action', { method: 'POST', body: new URLSearchParams({ action: 'getUIState' }) });
+            document.getElementById('output-display').innerHTML = await res.text();
         }
-    }
-
-    document.getElementById('members-form').addEventListener('submit', event => submitForm(event, '/api/members', 'Friends added.'));
-    document.getElementById('expense-form').addEventListener('submit', event => submitForm(event, '/api/expenses', 'Expense logged.'));
-    document.getElementById('payment-form').addEventListener('submit', event => submitForm(event, '/api/payments', 'Payment recorded.'));
-    document.getElementById('settle-button').addEventListener('click', async () => {
-        try {
-            const settlements = await request('/api/settlements', {});
-            const list = document.getElementById('settlements');
-            list.replaceChildren();
-            if (!settlements.length) addListItem(list, 'Everyone is settled up.', true);
-            settlements.forEach(item => addListItem(list, `${item.debtor} pays ${item.amount.toFixed(2)} INR to ${item.creditor}`));
-            status.textContent = 'Balances updated.';
-            status.className = '';
-        } catch (error) {
-            status.textContent = error.message;
-            status.className = 'error';
-        }
-    });
-    refresh().catch(() => {
-        status.textContent = 'Start the Java server to connect.';
-        status.className = 'error';
-    });
-</script>
+        window.onload = refreshUI;
+    </script>
 </body>
 </html>
